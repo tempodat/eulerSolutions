@@ -1,0 +1,67 @@
+from z3 import *
+import itertools as it
+import re
+
+def n_correct(D, n):
+    """ Create condition that says, n out of these digits are correct """
+    dsum = Sum([If(x == d, 1, 0) for x, d in zip(X,D)])
+    return dsum == n
+
+
+INPUT = """
+90342 ;2 correct
+70794 ;0 correct
+39458 ;2 correct
+34109 ;1 correct
+51545 ;2 correct
+12531 ;1 correct
+"""
+# =============================================================================
+# INPUT = """
+# 5616185650518293 ;2 correct
+# 3847439647293047 ;1 correct
+# 5855462940810587 ;3 correct
+# 9742855507068353 ;3 correct
+# 4296849643607543 ;3 correct
+# 3174248439465858 ;1 correct
+# 4513559094146117 ;2 correct
+# 7890971548908067 ;3 correct
+# 8157356344118483 ;1 correct
+# 2615250744386899 ;2 correct
+# 8690095851526254 ;3 correct
+# 6375711915077050 ;1 correct
+# 6913859173121360 ;1 correct
+# 6442889055042768 ;2 correct
+# 2321386104303845 ;0 correct
+# 2326509471271448 ;2 correct
+# 5251583379644322 ;2 correct
+# 1748270476758276 ;3 correct
+# 4895722652190306 ;1 correct
+# 3041631117224635 ;3 correct
+# 1841236454324589 ;3 correct
+# 2659862637316867 ;2 correct
+# """
+# =============================================================================
+
+rows = re.findall(r'^(\d+) ;(\d)', INPUT, re.M) 
+N = len(rows[0][0])
+
+X = [Int(f"d_{i}") for i in range(N)]
+
+values_c = [And(0 <= x, x <= 9) for x in X]
+
+
+
+conditions = [(list(map(int,number)),int(correct)) for (number, correct) in rows]
+input_c = [n_correct(d, n) for d, n in conditions]
+
+
+s = Solver()
+s.add(values_c)
+s.add(input_c)
+
+s.check()
+
+m = s.model()
+
+print(''.join([str(m[x]) for x in X]))
